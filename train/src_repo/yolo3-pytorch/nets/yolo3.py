@@ -161,5 +161,8 @@ class YoloBody(nn.Module):
         # 52,52,384 -> 52,52,128 -> 52,52,256 -> 52,52,128 -> 52,52,256 -> 52,52,128
         out2, _ = _branch(self.final_layer2, x2)
         return out0, out1, out2
+        # OUTPUT ATTENTION: 
+        # PyTorch modules dealing with image data require tensors to be laid out as C × H × W : 
+        # channels, height, and width, respectively. 
     # end
 # end
