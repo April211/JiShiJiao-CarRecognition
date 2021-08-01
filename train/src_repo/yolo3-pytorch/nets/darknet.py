@@ -159,7 +159,7 @@ def darknet53(pretrained, **kwargs):
     model = DarkNet([1, 2, 8, 8, 4])            # 获得一个 DarkNet53网络对象
     if pretrained:
         if isinstance(pretrained, str):
-            model.load_state_dict(torch.load(pretrained))       # 加载预训练模型，并
+            model.load_state_dict(torch.load(pretrained))       # 加载预训练模型，并将其参数配置给当前模型
         else:
             raise Exception("darknet request a pretrained path. got [{}]".format(pretrained))
     return model
