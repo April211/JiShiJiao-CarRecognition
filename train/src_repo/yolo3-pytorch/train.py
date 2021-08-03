@@ -120,7 +120,9 @@ def fit_one_epoch(net, yolo_loss, epoch, epoch_size, epoch_size_val, gen, genval
     print('\n  ')
     print('#######################################!!!!!!!#############################')
     if(epoch>95):
-        torch.save(model.state_dict(), 'logs/Epoch%d-Total_Loss%.4f-Val_Loss%.4f.pth'%((epoch + 1), total_loss / (epoch_size + 1), val_loss / (epoch_size_val + 1)))
+        print("Saving model...")                                       # 保存模型文件
+        torch.save(model.state_dict(), '/project/train/models/Epoch%d-Total_Loss%.4f-Val_Loss%.4f.pth'%((epoch + 1), total_loss / (epoch_size + 1), val_loss / (epoch_size_val + 1)))
+        
 
 #----------------------------------------------------#
 #   检测精度mAP和pr曲线计算参考视频

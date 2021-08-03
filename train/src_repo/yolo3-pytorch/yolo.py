@@ -23,7 +23,7 @@ from utils.utils import (DecodeBox, letterbox_image, non_max_suppression,
 #--------------------------------------------#
 class YOLO(object):
     _defaults = {
-        "model_path"        : 'logs/Epoch100-Total_Loss7.0705-Val_Loss5.6573.pth',
+        "model_path"        : '/project/train/models/Epoch100-Total_Loss7.0705-Val_Loss5.6573.pth',          # ？
         "anchors_path"      : 'model_data/yolo_anchors.txt',
         "classes_path"      : 'model_data/voc_classes.txt',
         "model_image_size"  : (416, 416, 3),
