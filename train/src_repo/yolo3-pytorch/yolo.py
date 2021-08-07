@@ -146,11 +146,11 @@ class YOLO(object):
             #---------------------------------------------------------#
             #   将图像输入网络当中进行预测！
             #---------------------------------------------------------#
-            outputs = self.net(images)
+            outputs = self.net(images)              # 4D -> 5D
             output_list = []
             for i in range(3):
-                output_list.append(self.yolo_decodes[i](outputs[i]))
-                
+                output_list.append(self.yolo_decodes[i](outputs[i]))            # 先解码，获得像素坐标值，再堆叠
+            
             #---------------------------------------------------------#
             #   将预测框进行堆叠，然后进行非极大抑制
             #---------------------------------------------------------#
@@ -170,7 +170,7 @@ class YOLO(object):
             #---------------------------------------------------------#
             top_index   = batch_detections[:, 4] * batch_detections[:, 5] > self.confidence
             top_conf    = batch_detections[top_index, 4] * batch_detections[top_index, 5]
-            top_label   = np.array(batch_detections[top_index, -1],np.int32)
+            top_label   = np.array(batch_detections[top_index, -1], np.int32)
             top_bboxes  = np.array(batch_detections[top_index, :4])
             top_xmin, top_ymin, top_xmax, top_ymax = np.expand_dims(top_bboxes[:,0],-1),np.expand_dims(top_bboxes[:,1],-1),np.expand_dims(top_bboxes[:,2],-1),np.expand_dims(top_bboxes[:,3],-1)
 

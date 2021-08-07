@@ -194,6 +194,7 @@ class YOLOLoss(nn.Module):
         return loss, num_pos
 
     def get_target(self, target, anchors, in_w, in_h, ignore_threshold):
+        """ 产生符合模型要求的标签 """
         #-----------------------------------------------------#
         #   计算一共有多少张图片
         #-----------------------------------------------------#
