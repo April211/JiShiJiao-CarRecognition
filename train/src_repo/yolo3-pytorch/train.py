@@ -7,12 +7,33 @@ import torch.backends.cudnn as cudnn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+import torch.onnx 
 import os
 
 from nets.yolo3 import YoloBody
 from nets.yolo_training import YOLOLoss, LossHistory, weights_init
 from utils.dataloader import YoloDataset, yolo_dataset_collate
 
+def Convert_ONNX(net, x, epoch): 
+    """ Function to Convert to ONNX """
+    # set the model to inference mode 
+    net.eval()
+
+    # Export the model   
+    torch.onnx.export(net.module ,         # model being run 
+         x,       # model input (or a tuple for multiple inputs) 
+         "/project/train/models/Yolov3_{}.onnx".format(epoch),       # where to save the model  
+         export_params=True,  # store the trained parameter weights inside the model file 
+         opset_version=11,    # the ONNX version to export the model to 
+         do_constant_folding=True,  # whether to execute constant folding for optimization 
+         input_names = ['input'],   # the model's input names 
+         output_names = ['output1', 'output2', 'output3'], # the model's output names 
+         dynamic_axes={'input' : {0 : 'batch_size'},    # variable length axes 
+                       'output1' : {0 : 'batch_size'},
+                       'output2' : {0 : 'batch_size'},
+                       'output3' : {0 : 'batch_size'}})
+    print('\n  ')
+    print('Model has been converted to ONNX.')
 
 def get_anchors(anchors_path):
     with open(anchors_path) as f:
@@ -109,7 +130,6 @@ def fit_one_epoch(net, yolo_loss, epoch, epoch_size, epoch_size_val, gen, genval
 
             pbar.set_postfix(**{'total_loss': val_loss / (iteration + 1)})
             pbar.update(1)
-
     loss_history.append_loss(total_loss/(epoch_size+1), val_loss/(epoch_size_val+1))
     print('Finish Validation')
     print('Epoch:'+ str(epoch+1) + '/' + str(Epoch))
@@ -121,8 +141,9 @@ def fit_one_epoch(net, yolo_loss, epoch, epoch_size, epoch_size_val, gen, genval
     print('#######################################!!!!!!!#############################')
     if(epoch>95):
         print("Saving model...")                                       # 保存模型文件
-        torch.save(model.state_dict(), '/project/train/models/Epoch%d-Total_Loss%.4f-Val_Loss%.4f.pth'%((epoch + 1), total_loss / (epoch_size + 1), val_loss / (epoch_size_val + 1)))
-        
+        # torch.save(model.state_dict(), '/project/train/models/Epoch%d-Total_Loss%.4f-Val_Loss%.4f.pth'%((epoch + 1), total_loss / (epoch_size + 1), val_loss / (epoch_size_val + 1)))
+        Convert_ONNX(net, images_val, epoch)
+
 
 #----------------------------------------------------#
 #   检测精度mAP和pr曲线计算参考视频
@@ -193,7 +214,7 @@ if __name__ == "__main__":
     #   2007_test.txt和2007_val.txt里面没有内容是正常的。训练不会使用到。
     #   当前划分方式下，验证集和训练集的比例为1:9
     #----------------------------------------------------------------------#
-    val_split = 0.1
+    val_split = 0.1         # 划分大小
     with open(annotation_path) as f:
         lines = f.readlines()
     np.random.seed(10101)
@@ -225,7 +246,7 @@ if __name__ == "__main__":
                                     drop_last=True, collate_fn=yolo_dataset_collate)
         gen_val         = DataLoader(val_dataset, shuffle=True, batch_size=Batch_size, num_workers=0, pin_memory=False, #############################改动
                                     drop_last=True, collate_fn=yolo_dataset_collate)
-                        
+        
         #------------------------------------#
         #   冻结一定部分训练
         #------------------------------------#
