@@ -111,11 +111,18 @@ class YoloBody(nn.Module):
             参数：5L + Head层、输入数据\n
             返回：最终结果（作为模型输出）、中途分支（准备卷积上采样）\n
             """
-            for index, layer in enumerate(final_layer):                  # 遍历 ModuleList中的网络，手动逐层 forward
-                layer_input = layer(layer_input)
-                if index == 4:                                           # 5L特征提取结束，分支，准备卷积上采样
-                    out_branch = layer_input                             # 找个变量记录一下，就算分支了
-            return layer_input, out_branch                               # layer_input 是经过整个7层的，out_branch只经过了前五层
+            layer_list = list(final_layer)                              # 遍历 ModuleList中的网络，手动逐层 forward
+
+            # 5L特征提取结束，分支，准备卷积上采样
+            layer_input = layer_list[0](layer_input)                    
+            layer_input = layer_list[1](layer_input)
+            layer_input = layer_list[2](layer_input)
+            layer_input = layer_list[3](layer_input)
+            layer_input = layer_list[4](layer_input)
+            out_branch = layer_input                                    # 找个变量记录一下，就算分支了
+            layer_input = layer_list[5](layer_input)
+            layer_input = layer_list[6](layer_input)
+            return layer_input, out_branch                              # layer_input 是经过整个7层的，out_branch只经过了前五层
         # end
         
         #---------------------------------------------------#   
@@ -156,7 +163,7 @@ class YoloBody(nn.Module):
 
         #---------------------------------------------------#
         #   第三个特征层
-        #   out3 = (batch_size,255,52,52)
+        #   out2 = (batch_size,255,52,52)
         #---------------------------------------------------#
         # 52,52,384 -> 52,52,128 -> 52,52,256 -> 52,52,128 -> 52,52,256 -> 52,52,128
         out2, _ = _branch(self.final_layer2, x2)
