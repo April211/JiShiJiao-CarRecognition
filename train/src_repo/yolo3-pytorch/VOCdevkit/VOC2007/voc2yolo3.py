@@ -21,13 +21,13 @@ saveBasePath=r"./VOCdevkit/VOC2007/ImageSets/Main/"
 #   想要增加测试集修改trainval_percent
 #   train_percent不需要修改
 #----------------------------------------------------------------------#
-trainval_percent=1
+trainval_percent=0.302
 train_percent=1
 
 temp_xml = os.listdir(xmlfilepath)
 total_xml = []
 for xml in temp_xml:
-    if xml.endswith(".xml") and len(total_xml)<=3100:
+    if xml.endswith(".xml"):
         total_xml.append(xml)
 
 num=len(total_xml)  
@@ -44,7 +44,7 @@ ftest = open(os.path.join(saveBasePath,'test.txt'), 'w')
 ftrain = open(os.path.join(saveBasePath,'train.txt'), 'w')  
 fval = open(os.path.join(saveBasePath,'val.txt'), 'w')  
  
-for i  in list:  
+for i in list:  
     name=total_xml[i][:-4]+'\n'  
     if i in trainval:  
         ftrainval.write(name)  
@@ -58,4 +58,4 @@ for i  in list:
 ftrainval.close()  
 ftrain.close()  
 fval.close()  
-ftest .close()
+ftest.close()

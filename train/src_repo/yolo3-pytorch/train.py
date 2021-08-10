@@ -7,12 +7,22 @@ import torch.backends.cudnn as cudnn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-import torch.onnx 
 import os
 
 from nets.yolo3 import YoloBody
 from nets.yolo_training import YOLOLoss, LossHistory, weights_init
 from utils.dataloader import YoloDataset, yolo_dataset_collate
+
+
+def get_anchors(anchors_path):
+    with open(anchors_path) as f:
+        anchors = f.readline()
+    anchors = [float(x) for x in anchors.split(',')]
+    return np.array(anchors).reshape([-1, 3, 2])[::-1, :, :]
+
+def get_lr(optimizer):
+    for param_group in optimizer.param_groups:
+        return param_group['lr']
 
 def Convert_ONNX(net, x, epoch): 
     """ Function to Convert to ONNX """
@@ -35,16 +45,6 @@ def Convert_ONNX(net, x, epoch):
     print('\n  ')
     print('Model has been converted to ONNX.')
 
-def get_anchors(anchors_path):
-    with open(anchors_path) as f:
-        anchors = f.readline()
-    anchors = [float(x) for x in anchors.split(',')]
-    return np.array(anchors).reshape([-1, 3, 2])[::-1, :, :]
-
-def get_lr(optimizer):
-    for param_group in optimizer.param_groups:
-        return param_group['lr']
-        
 def fit_one_epoch(net, yolo_loss, epoch, epoch_size, epoch_size_val, gen, genval, Epoch, cuda):
     total_loss = 0
     val_loss = 0
@@ -130,6 +130,7 @@ def fit_one_epoch(net, yolo_loss, epoch, epoch_size, epoch_size_val, gen, genval
 
             pbar.set_postfix(**{'total_loss': val_loss / (iteration + 1)})
             pbar.update(1)
+
     loss_history.append_loss(total_loss/(epoch_size+1), val_loss/(epoch_size_val+1))
     print('Finish Validation')
     print('Epoch:'+ str(epoch+1) + '/' + str(Epoch))
@@ -139,17 +140,16 @@ def fit_one_epoch(net, yolo_loss, epoch, epoch_size, epoch_size_val, gen, genval
     os.system('head -n 3 /proc/meminfo')
     print('\n  ')
     print('#######################################!!!!!!!#############################')
-    if(epoch>95):
-        print("Saving model...")                                       # 保存模型文件
-        # torch.save(model.state_dict(), '/project/train/models/Epoch%d-Total_Loss%.4f-Val_Loss%.4f.pth'%((epoch + 1), total_loss / (epoch_size + 1), val_loss / (epoch_size_val + 1)))
+    if(epoch>51):
+        print("Saving model...")
         Convert_ONNX(net, images_val, epoch)
-
 
 #----------------------------------------------------#
 #   检测精度mAP和pr曲线计算参考视频
 #   https://www.bilibili.com/video/BV1zE411u7Vw
 #----------------------------------------------------#
 if __name__ == "__main__":
+    print("Init param...")
     #-------------------------------#
     #   是否使用Cuda
     #   没有GPU可以设置成False
@@ -185,15 +185,15 @@ if __name__ == "__main__":
     #------------------------------------------------------#
     #   权值文件请看README，百度网盘下载
     #------------------------------------------------------#
-#     model_path      = "model_data/yolo_weights.pth"#################################载入预训练模型
-#     print('Loading weights into state dict...')
-#     device          = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-#     model_dict      = model.state_dict()
-#     pretrained_dict = torch.load(model_path, map_location=device)
-#     pretrained_dict = {k: v for k, v in pretrained_dict.items() if np.shape(model_dict[k]) ==  np.shape(v)}
-#     model_dict.update(pretrained_dict)
-#     model.load_state_dict(model_dict)
-#     print('Finished!')
+    model_path      = "/project/train/models/pretrain/Epoch100-Total_Loss24.8887-Val_Loss23.2841.pth"    #################################载入预训练模型
+    print('Loading weights into state dict...')
+    device          = torch.device('cuda' if torch.cuda.is_available() else 'cpu')                    # ****
+    model_dict      = model.state_dict()
+    pretrained_dict = torch.load(model_path, map_location=device)
+    pretrained_dict = {k: v for k, v in pretrained_dict.items() if np.shape(model_dict[k]) ==  np.shape(v)}
+    model_dict.update(pretrained_dict)
+    model.load_state_dict(model_dict)
+    print('Finished!')
 
     net = model.train()
 
@@ -214,7 +214,7 @@ if __name__ == "__main__":
     #   2007_test.txt和2007_val.txt里面没有内容是正常的。训练不会使用到。
     #   当前划分方式下，验证集和训练集的比例为1:9
     #----------------------------------------------------------------------#
-    val_split = 0.1         # 划分大小
+    val_split = 0.07
     with open(annotation_path) as f:
         lines = f.readlines()
     np.random.seed(10101)
@@ -232,10 +232,10 @@ if __name__ == "__main__":
     #   提示OOM或者显存不足请调小Batch_size
     #------------------------------------------------------#
     if True:
-        lr              = 1e-3
-        Batch_size      = 8
+        lr              = 2e-3
+        Batch_size      = 24
         Init_Epoch      = 0
-        Freeze_Epoch    = 50
+        Freeze_Epoch    = 20
         
         optimizer       = optim.Adam(net.parameters(),lr)
         lr_scheduler    = optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.92)
@@ -264,10 +264,10 @@ if __name__ == "__main__":
             lr_scheduler.step()
             
     if True:
-        lr              = 1e-4
-        Batch_size      = 4
-        Freeze_Epoch    = 50
-        Unfreeze_Epoch  = 100
+        lr              = 1.2e-4
+        Batch_size      = 8
+        Freeze_Epoch    = 20
+        Unfreeze_Epoch  = 56
 
         optimizer       = optim.Adam(net.parameters(),lr)
         lr_scheduler    = optim.lr_scheduler.StepLR(optimizer,step_size=1,gamma=0.92)
