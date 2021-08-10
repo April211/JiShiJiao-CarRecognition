@@ -1,0 +1,97 @@
+### C++ ###
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+### C ###
+# Prerequisites
+*.d
+
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Linker output
+*.ilk
+*.map
+*.exp
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Kernel Module Compile Results
+*.mod*
+*.cmd
+.tmp_versions/
+modules.order
+Module.symvers
+Mkfile.old
+dkms.conf
+
+## python
+*.py[cod]
+*$py.class
+__pycache__/
+
+.idea
+*.jpg
+*.png
+core.*
+.vscode
+c0eb8a72deb779c328b0413a0ab06c625f770f
+model.ckpt.data-00000-of-00001
+pack-2ce4c826c0fd9434a0402467ddd76bc9a0e91f0c.pack
+pack-4e7fde5ac76ac87256f2bdf304078ab657ac9aa0.pack
+pack-f7ccae8118331d3a8cbc7750af5120457021fbe9.pack
+pack-ebedd757bd9aa23e05bf63414b1d67641a368abd.pack
+pack-ee255c4b64e518e092c2b80f602d9518149ccc45.pack
+
+*.onnx
+*.pth
